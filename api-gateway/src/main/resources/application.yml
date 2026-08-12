@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Route 1: Profile Service
+        - id: profile-service
+          uri: lb://PROFILE-SERVICE
+          predicates:
+            - Path=/api/v1/users/**
+
+        # Route 2: Destination Service
+        - id: destination-service
+          uri: lb://DESTINATION-SERVICE
+          predicates:
+            - Path=/api/v1/destinations/**
+
+        # Route 3: Photo Gallery Service
+        - id: gallery-service
+          uri: lb://GALLERY-SERVICE
+          predicates:
+            - Path=/api/v1/gallery/**
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
