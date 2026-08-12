@@ -15,19 +15,31 @@ spring:
         - id: profile-service
           uri: lb://PROFILE-SERVICE
           predicates:
-            - Path=/api/v1/users/**
+            - Path=/api/profiles/**
 
-        # Route 2: Destination Service
+        # Route 2: Destination Service (Destinations & Blogs)
         - id: destination-service
           uri: lb://DESTINATION-SERVICE
           predicates:
-            - Path=/api/v1/destinations/**
+            - Path=/api/destinations/**, /api/blogs/**
 
         # Route 3: Photo Gallery Service
         - id: gallery-service
           uri: lb://GALLERY-SERVICE
           predicates:
-            - Path=/api/v1/gallery/**
+            - Path=/api/gallery/**
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:5173" # React frontend default port
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
 
 eureka:
   client:

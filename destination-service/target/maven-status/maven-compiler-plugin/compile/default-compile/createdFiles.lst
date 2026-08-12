@@ -1,0 +1,12 @@
+com\tripdiary\destinationservice\model\Destination.class
+com\tripdiary\destinationservice\model\Blog$BlogBuilder.class
+com\tripdiary\destinationservice\DestinationServiceApplication.class
+com\tripdiary\destinationservice\service\DestinationService.class
+com\tripdiary\destinationservice\model\Review.class
+com\tripdiary\destinationservice\repository\BlogRepository.class
+com\tripdiary\destinationservice\repository\ReviewRepository.class
+com\tripdiary\destinationservice\model\Review$ReviewBuilder.class
+com\tripdiary\destinationservice\repository\DestinationRepository.class
+com\tripdiary\destinationservice\model\Blog.class
+com\tripdiary\destinationservice\controller\DestinationController.class
+com\tripdiary\destinationservice\model\Destination$DestinationBuilder.class
