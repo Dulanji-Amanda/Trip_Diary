@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary-50: #f0f9ff;
   --color-primary-100: #e0f2fe;
@@ -14,6 +16,6 @@
 }
 
 body {
-  background-color: var(--color-slate-50, #f8fafc);
-  color: var(--color-slate-900, #0f172a);
+  /* Let Tailwind's App.jsx div handle the background to ensure transitions */
+  @apply bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-50 transition-colors duration-300;
 }

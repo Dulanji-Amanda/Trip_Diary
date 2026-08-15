@@ -9,11 +9,9 @@ const api = axios.create({
     }
 });
 
-// Assuming a mocked user ID for demo purposes, since no Auth service is present
-export const DEMO_USER_ID = 1;
-
 export const profileService = {
     getUser: (id) => api.get(`/profiles/${id}`),
+    getUserByEmail: (email) => api.get(`/profiles/email/${email}`),
     createUser: (data) => api.post('/profiles', data),
     getFavorites: (userId) => api.get(`/profiles/${userId}/favorites`),
     addFavorite: (userId, destId) => api.post(`/profiles/${userId}/favorites?destinationId=${destId}`),
@@ -26,6 +24,7 @@ export const destinationService = {
     create: (data) => api.post('/destinations', data),
     
     getBlogs: (destId) => api.get(`/destinations/${destId}/blogs`),
+    getBlogsByUser: (userId) => api.get(`/blogs/user/${userId}`),
     createBlog: (data) => api.post('/blogs', data),
     
     getReviews: (destId) => api.get(`/destinations/${destId}/reviews`),
