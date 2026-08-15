@@ -4,8 +4,7 @@ server:
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/tripdiary_destination_db
-      auto-index-creation: true
+      uri: mongodb+srv://user:IxO6P8P1tQIysp3t@cluster0.vl1uzvv.mongodb.net/tripdiary_destination_db?retryWrites=true&w=majority
 
 eureka:
   client:
