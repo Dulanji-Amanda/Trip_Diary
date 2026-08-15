@@ -19,7 +19,7 @@ spring:
         - id: destination-service
           uri: lb://DESTINATION-SERVICE
           predicates:
-            - Path=/api/destinations/**, /api/blogs/**
+            - Path=/api/destinations/**, /api/blogs/**, /api/reviews/**
 
         # Route 3: Photo Gallery Service
         - id: gallery-service

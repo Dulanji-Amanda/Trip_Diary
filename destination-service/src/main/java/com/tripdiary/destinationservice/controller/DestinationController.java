@@ -36,6 +36,17 @@ public class DestinationController {
         return ResponseEntity.ok(destinationService.getDestinationById(id));
     }
 
+    @PutMapping("/destinations/{id}")
+    public ResponseEntity<Destination> updateDestination(@PathVariable String id, @RequestBody Destination destination) {
+        return ResponseEntity.ok(destinationService.updateDestination(id, destination));
+    }
+
+    @DeleteMapping("/destinations/{id}")
+    public ResponseEntity<Void> deleteDestination(@PathVariable String id) {
+        destinationService.deleteDestination(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // --- Blogs ---
     @PostMapping("/blogs")
     public ResponseEntity<Blog> createBlog(@RequestBody Blog blog) {
@@ -52,6 +63,17 @@ public class DestinationController {
         return ResponseEntity.ok(destinationService.getBlogsByUser(userId));
     }
 
+    @PutMapping("/blogs/{id}")
+    public ResponseEntity<Blog> updateBlog(@PathVariable String id, @RequestBody Blog blog) {
+        return ResponseEntity.ok(destinationService.updateBlog(id, blog));
+    }
+
+    @DeleteMapping("/blogs/{id}")
+    public ResponseEntity<Void> deleteBlog(@PathVariable String id) {
+        destinationService.deleteBlog(id);
+        return ResponseEntity.noContent().build();
+    }
+
     // --- Reviews ---
     @PostMapping("/destinations/{destinationId}/reviews")
     public ResponseEntity<Review> addReview(@PathVariable String destinationId, @RequestBody Review review) {
@@ -62,5 +84,16 @@ public class DestinationController {
     @GetMapping("/destinations/{destinationId}/reviews")
     public ResponseEntity<List<Review>> getReviewsForDestination(@PathVariable String destinationId) {
         return ResponseEntity.ok(destinationService.getReviewsForDestination(destinationId));
+    }
+
+    @PutMapping("/reviews/{id}")
+    public ResponseEntity<Review> updateReview(@PathVariable String id, @RequestBody Review review) {
+        return ResponseEntity.ok(destinationService.updateReview(id, review));
+    }
+
+    @DeleteMapping("/reviews/{id}")
+    public ResponseEntity<Void> deleteReview(@PathVariable String id) {
+        destinationService.deleteReview(id);
+        return ResponseEntity.noContent().build();
     }
 }

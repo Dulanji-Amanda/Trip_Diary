@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { destinationService, profileService } from '../services/api';
-import { Search, MapPin, Star, Heart, Plus } from 'lucide-react';
+import { Search, MapPin, Star, Heart, Plus, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
-const DestinationCard = ({ dest, handleAddFavorite }) => {
+const DestinationCard = ({ dest, user, handleAddFavorite, handleEditClick, handleDeleteClick }) => {
     const [imageUrl, setImageUrl] = useState(null);
 
     useEffect(() => {
@@ -18,7 +18,7 @@ const DestinationCard = ({ dest, handleAddFavorite }) => {
     }, [dest.id]);
 
     return (
-        <div className="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
+        <div className="group bg-white dark:bg-slate-800 rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col relative">
             <div className="h-48 bg-slate-900 relative overflow-hidden">
                 {imageUrl ? (
                     <img src={imageUrl} alt={dest.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.target.style.display='none' }} />
@@ -31,12 +31,24 @@ const DestinationCard = ({ dest, handleAddFavorite }) => {
                         </div>
                     </>
                 )}
-                <button 
-                    onClick={(e) => { e.preventDefault(); handleAddFavorite(dest.id); }}
-                    className="absolute top-4 right-4 p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors shadow-sm z-30"
-                >
-                    <Heart className="w-5 h-5" />
-                </button>
+                <div className="absolute top-4 right-4 flex gap-2 z-30">
+                    {user && (
+                        <>
+                            <button onClick={(e) => { e.preventDefault(); handleEditClick(dest); }} className="p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full text-slate-400 dark:text-slate-500 hover:text-blue-500 transition-colors shadow-sm">
+                                <Edit className="w-4 h-4" />
+                            </button>
+                            <button onClick={(e) => { e.preventDefault(); handleDeleteClick(dest.id); }} className="p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full text-slate-400 dark:text-slate-500 hover:text-rose-500 transition-colors shadow-sm">
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </>
+                    )}
+                    <button 
+                        onClick={(e) => { e.preventDefault(); handleAddFavorite(dest.id); }}
+                        className="p-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm rounded-full text-slate-400 dark:text-slate-500 hover:text-rose-500 dark:hover:text-rose-400 transition-colors shadow-sm"
+                    >
+                        <Heart className="w-5 h-5" />
+                    </button>
+                </div>
             </div>
             <div className="p-6 flex flex-col flex-grow">
                 <div className="flex justify-between items-start mb-2">
@@ -77,10 +89,12 @@ const Dashboard = () => {
     const [destinations, setDestinations] = useState([]);
     const [searchTag, setSearchTag] = useState('');
     const [loading, setLoading] = useState(true);
-    const [showCreateModal, setShowCreateModal] = useState(false);
     
-    // New destination state
-    const [newDest, setNewDest] = useState({ title: '', location: '', country: '', description: '', tags: '' });
+    // Modal states
+    const [showModal, setShowModal] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentDestId, setCurrentDestId] = useState(null);
+    const [destForm, setDestForm] = useState({ title: '', location: '', country: '', description: '', tags: '' });
 
     useEffect(() => {
         fetchDestinations();
@@ -113,17 +127,53 @@ const Dashboard = () => {
         }
     };
 
-    const handleCreateDest = async (e) => {
+    const openCreateModal = () => {
+        setIsEditing(false);
+        setDestForm({ title: '', location: '', country: '', description: '', tags: '' });
+        setShowModal(true);
+    };
+
+    const openEditModal = (dest) => {
+        setIsEditing(true);
+        setCurrentDestId(dest.id);
+        setDestForm({
+            title: dest.title,
+            location: dest.location,
+            country: dest.country,
+            description: dest.description,
+            tags: dest.tags ? dest.tags.join(', ') : ''
+        });
+        setShowModal(true);
+    };
+
+    const handleSaveDest = async (e) => {
         e.preventDefault();
-        const tagsArray = newDest.tags.split(',').map(t => t.trim()).filter(t => t);
+        const tagsArray = destForm.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(t => t);
+        
         try {
-            const res = await destinationService.create({ ...newDest, tags: tagsArray });
-            setDestinations([...destinations, res.data]);
-            setShowCreateModal(false);
-            setNewDest({ title: '', location: '', country: '', description: '', tags: '' });
+            if (isEditing) {
+                const res = await destinationService.update(currentDestId, { ...destForm, tags: tagsArray });
+                setDestinations(destinations.map(d => d.id === currentDestId ? res.data : d));
+            } else {
+                const res = await destinationService.create({ ...destForm, tags: tagsArray });
+                setDestinations([...destinations, res.data]);
+            }
+            setShowModal(false);
         } catch (err) {
-            console.error("Failed to create", err);
-            alert("Failed to create destination.");
+            console.error("Failed to save", err);
+            alert("Failed to save destination.");
+        }
+    };
+
+    const handleDeleteDest = async (id) => {
+        if (window.confirm("Are you sure you want to delete this destination? This action cannot be undone.")) {
+            try {
+                await destinationService.delete(id);
+                setDestinations(destinations.filter(d => d.id !== id));
+            } catch (err) {
+                console.error("Failed to delete", err);
+                alert("Failed to delete destination.");
+            }
         }
     };
 
@@ -176,15 +226,16 @@ const Dashboard = () => {
             <div>
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Trending Destinations</h2>
-                    <button 
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-1 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
-                    >
-                        <Plus className="w-4 h-4" /> Add Destination
-                    </button>
+                    {user && (
+                        <button 
+                            onClick={openCreateModal}
+                            className="flex items-center gap-1 px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors"
+                        >
+                            <Plus className="w-4 h-4" /> Add Destination
+                        </button>
+                    )}
                 </div>
                 
-
                 {loading ? (
                     <div className="flex justify-center py-20">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
@@ -192,7 +243,14 @@ const Dashboard = () => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {destinations.map(dest => (
-                            <DestinationCard key={dest.id} dest={dest} handleAddFavorite={handleAddFavorite} />
+                            <DestinationCard 
+                                key={dest.id} 
+                                dest={dest} 
+                                user={user}
+                                handleAddFavorite={handleAddFavorite} 
+                                handleEditClick={openEditModal}
+                                handleDeleteClick={handleDeleteDest}
+                            />
                         ))}
                         
                         {destinations.length === 0 && (
@@ -204,22 +262,26 @@ const Dashboard = () => {
                 )}
             </div>
 
-            {/* Create Modal */}
-            {showCreateModal && (
+            {/* Create/Edit Modal */}
+            {showModal && (
                 <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 max-w-md w-full shadow-xl">
-                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Add New Destination</h3>
-                        <form onSubmit={handleCreateDest} className="space-y-4">
-                            <input type="text" placeholder="Title" required className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={newDest.title} onChange={e => setNewDest({...newDest, title: e.target.value})} />
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">
+                            {isEditing ? 'Edit Destination' : 'Add New Destination'}
+                        </h3>
+                        <form onSubmit={handleSaveDest} className="space-y-4">
+                            <input type="text" placeholder="Title" required className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={destForm.title} onChange={e => setDestForm({...destForm, title: e.target.value})} />
                             <div className="flex gap-2">
-                                <input type="text" placeholder="Location" required className="w-1/2 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={newDest.location} onChange={e => setNewDest({...newDest, location: e.target.value})} />
-                                <input type="text" placeholder="Country" required className="w-1/2 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={newDest.country} onChange={e => setNewDest({...newDest, country: e.target.value})} />
+                                <input type="text" placeholder="Location" required className="w-1/2 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={destForm.location} onChange={e => setDestForm({...destForm, location: e.target.value})} />
+                                <input type="text" placeholder="Country" required className="w-1/2 p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={destForm.country} onChange={e => setDestForm({...destForm, country: e.target.value})} />
                             </div>
-                            <textarea placeholder="Description" rows={3} required className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={newDest.description} onChange={e => setNewDest({...newDest, description: e.target.value})} />
-                            <input type="text" placeholder="Tags (comma separated)" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={newDest.tags} onChange={e => setNewDest({...newDest, tags: e.target.value})} />
+                            <textarea placeholder="Description" rows={3} required className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={destForm.description} onChange={e => setDestForm({...destForm, description: e.target.value})} />
+                            <input type="text" placeholder="Tags (comma separated)" className="w-full p-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white" value={destForm.tags} onChange={e => setDestForm({...destForm, tags: e.target.value})} />
                             <div className="flex justify-end gap-2 mt-6">
-                                <button type="button" onClick={() => setShowCreateModal(false)} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
-                                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">Create</button>
+                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Cancel</button>
+                                <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700">
+                                    {isEditing ? 'Save Changes' : 'Create'}
+                                </button>
                             </div>
                         </form>
                     </div>

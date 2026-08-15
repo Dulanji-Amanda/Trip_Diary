@@ -22,13 +22,19 @@ export const destinationService = {
     getAll: (tag) => api.get('/destinations' + (tag ? `?tag=${tag}` : '')),
     getById: (id) => api.get(`/destinations/${id}`),
     create: (data) => api.post('/destinations', data),
+    update: (id, data) => api.put(`/destinations/${id}`, data),
+    delete: (id) => api.delete(`/destinations/${id}`),
     
     getBlogs: (destId) => api.get(`/destinations/${destId}/blogs`),
     getBlogsByUser: (userId) => api.get(`/blogs/user/${userId}`),
     createBlog: (data) => api.post('/blogs', data),
+    updateBlog: (id, data) => api.put(`/blogs/${id}`, data),
+    deleteBlog: (id) => api.delete(`/blogs/${id}`),
     
     getReviews: (destId) => api.get(`/destinations/${destId}/reviews`),
     addReview: (destId, data) => api.post(`/destinations/${destId}/reviews`, data),
+    updateReview: (id, data) => api.put(`/reviews/${id}`, data),
+    deleteReview: (id) => api.delete(`/reviews/${id}`),
 };
 
 export const galleryService = {
