@@ -51,8 +51,8 @@ const ProfilePage = () => {
         }
     };
 
-    const getImageUrl = (filename) => {
-        return `http://localhost:8080/api/gallery/files/${filename}`;
+    const getImageUrl = (photo) => {
+        return photo.photoUrl;
     };
 
     if (!user) return <div className="p-8 text-center text-slate-500 dark:text-slate-400">Loading profile...</div>;
@@ -146,7 +146,7 @@ const ProfilePage = () => {
                         {photos.map(photo => (
                             <div key={photo.id} className="aspect-square rounded-2xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 group bg-slate-200 dark:bg-slate-700">
                                 <img 
-                                    src={getImageUrl(photo.fileName)} 
+                                    src={getImageUrl(photo)} 
                                     alt="User Upload" 
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     onError={(e) => { e.target.src = 'https://placehold.co/400?text=Image+Not+Found' }}

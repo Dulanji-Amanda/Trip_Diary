@@ -38,3 +38,10 @@ app:
     upload-dir: uploads/
     use-gcs: false # Set to true when GCP credentials are provided
     gcs-bucket: your-gcs-bucket-name
+
+gcp:
+  project-id: project-00e6ad8d-07ac-4315-820
+  bucket:
+    name: trip-diary-gallery-bucket
+  credentials:
+    location: classpath:gcp-service-account.json

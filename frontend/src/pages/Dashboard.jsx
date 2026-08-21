@@ -11,7 +11,7 @@ const DestinationCard = ({ dest, user, handleAddFavorite, handleEditClick, handl
         import('../services/api').then(({ galleryService }) => {
             galleryService.getByDestination(dest.id).then(res => {
                 if (res.data && res.data.length > 0) {
-                    setImageUrl(`http://localhost:8080/api/gallery/files/${res.data[0].fileName}`);
+                    setImageUrl(res.data[0].photoUrl);
                 }
             }).catch(() => {});
         });

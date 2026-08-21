@@ -3,3 +3,4 @@ spring:
     name: gallery-service
   config:
     import: optional:configserver:http://localhost:8888
+

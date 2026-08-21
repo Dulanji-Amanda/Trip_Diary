@@ -143,9 +143,9 @@ const DestinationDetails = () => {
         }
     };
 
-    const getImageUrl = (filename) => {
-        // Construct the URL to the API Gateway routing to gallery service file endpoint
-        return `http://localhost:8080/api/gallery/files/${filename}`;
+    const getImageUrl = (photo) => {
+        // Use the photoUrl directly from the database which contains the full GCS or local URL
+        return photo.photoUrl;
     };
 
     if (loading) {
@@ -211,7 +211,7 @@ const DestinationDetails = () => {
                         {photos.map(photo => (
                             <div key={photo.id} className="aspect-square rounded-2xl overflow-hidden shadow-sm group bg-slate-200 dark:bg-slate-700">
                                 <img 
-                                    src={getImageUrl(photo.fileName)} 
+                                    src={getImageUrl(photo)} 
                                     alt="Destination" 
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                     onError={(e) => { e.target.src = 'https://placehold.co/400?text=Image+Not+Found' }}

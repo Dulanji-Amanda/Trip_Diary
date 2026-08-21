@@ -2,11 +2,12 @@ package com.tripdiary.galleryservice.controller;
 
 import com.tripdiary.galleryservice.model.PhotoMetadata;
 import com.tripdiary.galleryservice.service.GalleryService;
+import com.tripdiary.galleryservice.service.GcsStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,17 +24,34 @@ import java.util.List;
 public class GalleryController {
 
     private final GalleryService galleryService;
+    private final GcsStorageService gcsStorageService;
 
     @PostMapping("/upload")
-    public ResponseEntity<PhotoMetadata> uploadPhoto(
+    public ResponseEntity<?> uploadPhoto(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) String destinationId) {
         try {
-            PhotoMetadata metadata = galleryService.uploadPhoto(file, userId, destinationId);
+            String photoUrl = gcsStorageService.uploadFile(file);
+            PhotoMetadata metadata = galleryService.saveMetadata(file, userId, destinationId, photoUrl);
             return ResponseEntity.ok(metadata);
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("File upload failed: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("An error occurred: " + e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deletePhoto(@RequestParam("url") String url) {
+        try {
+            gcsStorageService.deleteFile(url);
+            return ResponseEntity.ok("File deleted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("File deletion failed: " + e.getMessage());
         }
     }
 
